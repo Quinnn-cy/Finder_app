@@ -1,5 +1,7 @@
 package com.quincy.restaurantfinder.ui.theme.screens.details
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -153,15 +155,30 @@ fun DetailsScreen(
                         fontWeight = FontWeight.Bold
                     )
 
+                    val context = LocalContext.current
                     val address = place.formatted_address ?: place.vicinity ?: "Address not available"
                     InfoRow(icon = Icons.Default.LocationOn, text = address)
 
                     place.formatted_phone_number?.let { phone ->
-                        InfoRow(icon = Icons.Default.Phone, text = phone)
+                        InfoRow(
+                            icon = Icons.Default.Phone,
+                            text = phone,
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                                context.startActivity(intent)
+                            }
+                        )
                     }
 
                     place.website?.let { web ->
-                        InfoRow(icon = Icons.Default.Language, text = web)
+                        InfoRow(
+                            icon = Icons.Default.Language,
+                            text = web,
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(web))
+                                context.startActivity(intent)
+                            }
+                        )
                     }
 
                     place.opening_hours?.open_now?.let { isOpen ->
@@ -170,6 +187,29 @@ fun DetailsScreen(
                             text = if (isOpen) "Open Now" else "Closed",
                             textColor = if (isOpen) Color(0xFF2E7D32) else Color.Red
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            val uriString = "https://m.uber.com/ul/?action=setPickup" +
+                                    "&dropoff[latitude]=${place.geometry.location.lat}" +
+                                    "&dropoff[longitude]=${place.geometry.location.lng}" +
+                                    "&dropoff[nickname]=${Uri.encode(place.name)}"
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Default.DirectionsCar, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Get a ride with Uber", fontWeight = FontWeight.Bold)
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -219,10 +259,16 @@ fun DetailsScreen(
 }
 
 @Composable
-fun InfoRow(icon: ImageVector, text: String, textColor: Color = MaterialTheme.colorScheme.onSurface) {
+fun InfoRow(
+    icon: ImageVector,
+    text: String,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    onClick: (() -> Unit)? = null
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -244,6 +290,7 @@ fun InfoRow(icon: ImageVector, text: String, textColor: Color = MaterialTheme.co
             style = MaterialTheme.typography.bodyLarge,
             color = textColor
         )
+
     }
 }
 

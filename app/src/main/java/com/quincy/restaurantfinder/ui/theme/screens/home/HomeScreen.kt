@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -30,13 +31,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.quincy.restaurantfinder.data.model.Place
 import com.quincy.restaurantfinder.models.LocationViewModel
 import com.quincy.restaurantfinder.ui.theme.RestaurantFinderTheme
@@ -59,7 +68,7 @@ fun HomeScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            // Permission granted logic
+            // Permission granted
         }
     }
 
@@ -166,7 +175,66 @@ fun HomeScreen(
                             )
                         }
                         items(state.searchResults) { place ->
-                            RestaurantApiCard(place = place, onClick = { onNavigateToDetails(place.place_id) })
+                            RestaurantApiCard(place = place, onClick = { onNavigateToDetails(place.place_id ?: "") })
+                        }
+                        item(span = { GridItemSpan(2) }) { Spacer(modifier = Modifier.height(16.dp)) }
+                    }
+
+                    // Map Section
+                    if (state.latitude != null && state.longitude != null) {
+                        item(span = { GridItemSpan(2) }) {
+                            Text(
+                                "Nearby Restaurants Map",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                            )
+                        }
+                        item(span = { GridItemSpan(2) }) {
+                            val userLocation = remember(state.latitude, state.longitude) {
+                                LatLng(state.latitude!!, state.longitude!!)
+                            }
+                            val cameraPositionState = rememberCameraPositionState {
+                                position = CameraPosition.fromLatLngZoom(userLocation, 15f)
+                            }
+
+                            LaunchedEffect(userLocation) {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(userLocation, 15f)
+                                )
+                            }
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .padding(8.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                GoogleMap(
+                                    modifier = Modifier.fillMaxSize(),
+                                    cameraPositionState = cameraPositionState,
+                                    properties = MapProperties(isMyLocationEnabled = true)
+                                ) {
+                                    state.nearbyRestaurants.forEach { restaurant ->
+                                        Marker(
+                                            state = MarkerState(
+                                                position = LatLng(
+                                                    restaurant.geometry.location.lat,
+                                                    restaurant.geometry.location.lng
+                                                )
+                                            ),
+                                            title = restaurant.name ?: "Restaurant",
+                                            snippet = restaurant.vicinity,
+                                            onClick = {
+                                                onNavigateToDetails(restaurant.place_id ?: "")
+                                                true
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                         item(span = { GridItemSpan(2) }) { Spacer(modifier = Modifier.height(16.dp)) }
                     }
@@ -187,7 +255,7 @@ fun HomeScreen(
                         }
                     } else {
                         items(state.nearbyRestaurants) { place ->
-                            RestaurantApiCard(place = place, onClick = { onNavigateToDetails(place.place_id) })
+                            RestaurantApiCard(place = place, onClick = { onNavigateToDetails(place.place_id ?: "") })
                         }
                     }
                 }
@@ -226,7 +294,7 @@ fun RestaurantApiCard(place: Place, onClick: () -> Unit) {
                 if (imageUrl != null) {
                     AsyncImage(
                         model = imageUrl,
-                        contentDescription = place.name,
+                        contentDescription = place.name ?: "Restaurant",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
@@ -236,8 +304,10 @@ fun RestaurantApiCard(place: Place, onClick: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .shadow(30.dp),
                         contentAlignment = Alignment.Center
+
                     ) {
                         Icon(
                             imageVector = Icons.Default.Restaurant,
@@ -271,15 +341,15 @@ fun RestaurantApiCard(place: Place, onClick: () -> Unit) {
 
             Column(modifier = Modifier.padding(10.dp)) {
                 Text(
-                    text = place.name,
+                    text = place.name ?: "",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                place.vicinity?.let {
+                place.vicinity?.let { vicinity ->
                     Text(
-                        text = it,
+                        text = vicinity,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

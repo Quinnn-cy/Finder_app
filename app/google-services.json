@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578361773172",
+    "project_id": "my-awesome-project-3006",
+    "storage_bucket": "my-awesome-project-3006.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578361773172:android:afac91a800c822457f1521",
+        "android_client_info": {
+          "package_name": "com.quincy.restaurantfinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLxrmsUkSOfQ2LNrbnLVvlP9VcW3Jj07E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
