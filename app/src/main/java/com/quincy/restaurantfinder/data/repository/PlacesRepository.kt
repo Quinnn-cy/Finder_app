@@ -19,6 +19,21 @@ class PlacesRepository {
 
         return response.results
     }
+    suspend fun getNearbyHospitals(
+        lat: Double,
+        lng: Double
+    ): List<Place> {
+
+        val response = RetrofitInstance.api.getNearbyHospitals(
+            location = "$lat,$lng",
+            apiKey = apiKey
+        )
+
+        return response.results
+    }
+
+
+
 
     suspend fun getPlaceDetails(placeId: String): com.quincy.restaurantfinder.data.model.Place? {
         return try {
@@ -36,5 +51,14 @@ class PlacesRepository {
         } catch (e: Exception) {
             emptyList()
         }
+    } suspend fun searchHospitals(query: String): List<com.quincy.restaurantfinder.data.model.Place> {
+        return try {
+            val response = RetrofitInstance.api.searchHospitals(query, apiKey = apiKey)
+            response.results
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
+
+
 }

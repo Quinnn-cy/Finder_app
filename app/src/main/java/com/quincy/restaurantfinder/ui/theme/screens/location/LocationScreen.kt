@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.quincy.restaurantfinder.models.LocationViewModel
-import com.quincy.restaurantfinder.ui.theme.screens.home.RestaurantApiCard
+import com.quincy.restaurantfinder.ui.theme.screens.home.PlaceCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ fun LocationScreen(
                         contentPadding = PaddingValues(8.dp)
                     ) {
                         items(state.nearbyRestaurants) { place ->
-                            RestaurantApiCard(
+                            PlaceCard(
                                 place = place,
                                 onClick = { onNavigateToDetails(place.place_id) }
                             )

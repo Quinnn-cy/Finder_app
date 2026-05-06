@@ -15,11 +15,26 @@ interface PlacesApiService {
         @Query("key") apiKey: String
     ): PlacesResponse
 
+    @GET("maps/api/place/nearbysearch/json")
+    suspend fun getNearbyHospitals(
+        @Query("location") location: String,
+        @Query("radius") radius: Int = 1500,
+        @Query("type") type: String = "hospital",
+        @Query("key") apiKey: String): PlacesResponse
+
     @GET("maps/api/place/details/json")
     suspend fun getPlaceDetails(
         @Query("place_id") placeId: String,
         @Query("key") apiKey: String
     ): PlaceDetailsResponse
+
+
+    @GET("maps/api/place/textsearch/json")
+    suspend fun searchHospitals(
+        @Query("query") query: String,
+        @Query("type") type: String = "hospital",
+        @Query("key") apiKey: String
+    ): PlacesResponse
 
     @GET("maps/api/place/textsearch/json")
     suspend fun searchRestaurants(
@@ -27,4 +42,15 @@ interface PlacesApiService {
         @Query("type") type: String = "restaurant",
         @Query("key") apiKey: String
     ): PlacesResponse
+
+    @GET("maps/api/place/textsearch/json")
+    suspend fun searchPlaces(
+        @Query("query") query: String,
+        @Query("type") type: String ="hospital",
+        @Query("key") apiKey: String
+    ): PlacesResponse
 }
+
+
+
+

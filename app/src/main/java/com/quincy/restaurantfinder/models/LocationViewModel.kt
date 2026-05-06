@@ -13,6 +13,7 @@ data class LocationState(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val nearbyRestaurants: List<Place> = emptyList(),
+    val nearbyHospitals: List<Place> = emptyList(),
     val searchResults: List<Place> = emptyList(),
     val isLoading: Boolean = false,
     val isSearching: Boolean = false,
@@ -34,6 +35,7 @@ class LocationViewModel : ViewModel() {
         )
 
         fetchRestaurants()
+        fetchHospitals()
     }
 
     // 2. Fetch restaurants AFTER location is set
@@ -61,7 +63,35 @@ class LocationViewModel : ViewModel() {
                 )
             }
         }
+    }fun fetchHospitals() {
+        val lat = _state.value.latitude
+        val lng = _state.value.longitude
+
+        if (lat == null || lng == null) return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            try {
+                val hospitals = placesRepository.getNearbyHospitals(lat, lng)
+
+                _state.value = _state.value.copy(
+                    nearbyHospitals = hospitals,
+                    isLoading = false
+                )
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.message,
+                    isLoading = false
+                )
+            }
+        }
     }
+
+
+
+
 
     suspend fun getPlaceDetails(placeId: String): com.quincy.restaurantfinder.data.model.Place? {
         return placesRepository.getPlaceDetails(placeId)
@@ -89,5 +119,32 @@ class LocationViewModel : ViewModel() {
                 )
             }
         }
+    }fun searchHospitals(query: String) {
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(isSearching = false, searchResults = emptyList())
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, isSearching = true)
+            try {
+                val results = placesRepository.searchHospitals(query)
+                _state.value = _state.value.copy(
+                    searchResults = results,
+                    isLoading = false,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message
+                )
+            }
+        }
     }
+
+
+
+
+
 }
