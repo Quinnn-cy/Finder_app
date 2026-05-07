@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.quincy.restaurantfinder.data.model.Place
 import com.quincy.restaurantfinder.data.repository.PlacesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -25,7 +24,7 @@ class LocationViewModel : ViewModel() {
     private val placesRepository = PlacesRepository()
 
     private val _state = MutableStateFlow(LocationState())
-    val state= _state.asStateFlow()
+    val state = _state.asStateFlow()
 
     // 1. Set location FIRST
     fun updateLocation(lat: Double, lng: Double) {
@@ -63,17 +62,19 @@ class LocationViewModel : ViewModel() {
                 )
             }
         }
-    }fun fetchHospitals() {
+    }
+
+    fun fetchHospitals(radius: Int = 5000) {
         val lat = _state.value.latitude
         val lng = _state.value.longitude
 
         if (lat == null || lng == null) return
 
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, error = null)
 
             try {
-                val hospitals = placesRepository.getNearbyHospitals(lat, lng)
+                val hospitals = placesRepository.getNearbyHospitals(lat, lng, radius)
 
                 _state.value = _state.value.copy(
                     nearbyHospitals = hospitals,
@@ -89,11 +90,7 @@ class LocationViewModel : ViewModel() {
         }
     }
 
-
-
-
-
-    suspend fun getPlaceDetails(placeId: String): com.quincy.restaurantfinder.data.model.Place? {
+    suspend fun getPlaceDetails(placeId: String): Place? {
         return placesRepository.getPlaceDetails(placeId)
     }
 
@@ -119,7 +116,9 @@ class LocationViewModel : ViewModel() {
                 )
             }
         }
-    }fun searchHospitals(query: String) {
+    }
+
+    fun searchHospitals(query: String) {
         if (query.isBlank()) {
             _state.value = _state.value.copy(isSearching = false, searchResults = emptyList())
             return
@@ -142,9 +141,4 @@ class LocationViewModel : ViewModel() {
             }
         }
     }
-
-
-
-
-
 }

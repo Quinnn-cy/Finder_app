@@ -18,7 +18,7 @@ interface PlacesApiService {
     @GET("maps/api/place/nearbysearch/json")
     suspend fun getNearbyHospitals(
         @Query("location") location: String,
-        @Query("radius") radius: Int = 1500,
+        @Query("radius") radius: Int = 5000,
         @Query("type") type: String = "hospital",
         @Query("key") apiKey: String): PlacesResponse
 

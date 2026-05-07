@@ -1,11 +1,12 @@
 package com.quincy.restaurantfinder.data.repository
 
+import com.quincy.restaurantfinder.BuildConfig
 import com.quincy.restaurantfinder.data.model.Place
 import com.quincy.restaurantfinder.data.remote.RetrofitInstance
 
 class PlacesRepository {
 
-    private val apiKey = "AIzaSyAKwniuRGtvdnIBsOI5NnaToJ6wmFtwc6o"
+    private val apiKey = BuildConfig.MAPS_API_KEY
 
     suspend fun getNearbyRestaurants(
         lat: Double,
@@ -21,13 +22,18 @@ class PlacesRepository {
     }
     suspend fun getNearbyHospitals(
         lat: Double,
-        lng: Double
+        lng: Double,
+        radius: Int = 5000
     ): List<Place> {
-
         val response = RetrofitInstance.api.getNearbyHospitals(
             location = "$lat,$lng",
+            radius = radius,
             apiKey = apiKey
         )
+        
+        if (response.status != "OK" && response.status != "ZERO_RESULTS") {
+            throw Exception(response.error_message ?: "API Error: ${response.status}")
+        }
 
         return response.results
     }

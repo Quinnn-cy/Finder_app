@@ -1,7 +1,9 @@
 package com.quincy.restaurantfinder.data.model
 
 data class PlacesResponse(
-    val results: List<Place>
+    val results: List<Place>,
+    val status: String,
+    val error_message: String? = null
 )
 
 data class Place(

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.quincy.restaurantfinder.models.LocationViewModel
-import com.quincy.restaurantfinder.ui.theme.screens.home.PlaceCard
+import com.quincy.restaurantfinder.ui.components.PlaceCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

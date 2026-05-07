@@ -25,13 +25,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.quincy.restaurantfinder.BuildConfig
 import com.quincy.restaurantfinder.R
 import com.quincy.restaurantfinder.data.model.Place
 import com.quincy.restaurantfinder.models.LocationViewModel
@@ -45,7 +49,8 @@ fun DetailsScreen(
 ) {
     var restaurant by remember { mutableStateOf<Place?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    val apiKey = "AIzaSyAKwniuRGtvdnIBsOI5NnaToJ6wmFtwc6o"
+    val apiKey = BuildConfig.MAPS_API_KEY
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(placeId) {
         restaurant = viewModel.getPlaceDetails(placeId)
@@ -53,20 +58,34 @@ fun DetailsScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(text = restaurant?.name ?: "Details", fontWeight = FontWeight.Bold) },
+            LargeTopAppBar(
+                title = { 
+                    Text(
+                        text = restaurant?.name ?: "Details", 
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite")
+                    }
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share")
+                    }
+                },
+                scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         }
@@ -91,105 +110,109 @@ fun DetailsScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 // Header Image
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .height(280.dp)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(32.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    if (imageUrl != null) {
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = place.name,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
-                            error = painterResource(id = android.R.drawable.ic_menu_report_image)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Restaurant,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(80.dp)
-                                .align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                    }
-                    
-                    // Rating Badge
-                    place.rating?.let { rating ->
-                        Surface(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .align(Alignment.BottomEnd),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(12.dp),
-                            shadowElevation = 4.dp
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (imageUrl != null) {
+                            AsyncImage(
+                                model = imageUrl,
+                                contentDescription = place.name,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Star,
-                                    null,
-                                    tint = Color(0xFFFFB300),
-                                    modifier = Modifier.size(18.dp)
+                                    imageVector = Icons.Default.Restaurant,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                                 )
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    "$rating (${place.user_ratings_total ?: 0})",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            }
+                        }
+                        
+                        // Rating Badge
+                        place.rating?.let { rating ->
+                            Surface(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .align(Alignment.BottomEnd),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Star, null, tint = Color(0xFFFFB300), modifier = Modifier.size(20.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        "$rating",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                    Text(
+                                        " (${place.user_ratings_total ?: 0})",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                     Text(
                         text = place.name,
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.ExtraBold
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     val context = LocalContext.current
-                    val address = place.formatted_address ?: place.vicinity ?: "Address not available"
-                    InfoRow(icon = Icons.Default.LocationOn, text = address)
-
-                    place.formatted_phone_number?.let { phone ->
-                        InfoRow(
-                            icon = Icons.Default.Phone,
-                            text = phone,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
-                                context.startActivity(intent)
+                    
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        border = CardDefaults.outlinedCardBorder()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            val address = place.formatted_address ?: place.vicinity ?: "Address not available"
+                            InfoRow(icon = Icons.Default.LocationOn, text = address)
+                            
+                            place.formatted_phone_number?.let { phone ->
+                                InfoRow(
+                                    icon = Icons.Default.Phone,
+                                    text = phone,
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                                        context.startActivity(intent)
+                                    }
+                                )
                             }
-                        )
-                    }
 
-                    place.website?.let { web ->
-                        InfoRow(
-                            icon = Icons.Default.Language,
-                            text = web,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(web))
-                                context.startActivity(intent)
+                            place.opening_hours?.open_now?.let { isOpen ->
+                                InfoRow(
+                                    icon = Icons.Default.Schedule,
+                                    text = if (isOpen) "Open Now" else "Closed",
+                                    textColor = if (isOpen) Color(0xFF2E7D32) else Color.Red
+                                )
                             }
-                        )
+                        }
                     }
 
-                    place.opening_hours?.open_now?.let { isOpen ->
-                        InfoRow(
-                            icon = Icons.Default.Schedule,
-                            text = if (isOpen) "Open Now" else "Closed",
-                            textColor = if (isOpen) Color(0xFF2E7D32) else Color.Red
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
                         onClick = {
@@ -200,39 +223,38 @@ fun DetailsScreen(
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
                             context.startActivity(intent)
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Black,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(imageVector = Icons.Default.DirectionsCar, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Get a ride with Uber", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Get a ride with Uber", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = "Location on Map",
+                        text = "Find on Map",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
 
                     // Map Section
                     val restaurantLatLng = LatLng(place.geometry.location.lat, place.geometry.location.lng)
                     val cameraPositionState = rememberCameraPositionState {
-                        position = CameraPosition.fromLatLngZoom(restaurantLatLng, 15f)
+                        position = CameraPosition.fromLatLngZoom(restaurantLatLng, 16f)
                     }
 
-                    Box(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .height(200.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        border = CardDefaults.outlinedCardBorder()
                     ) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
@@ -241,13 +263,12 @@ fun DetailsScreen(
                         ) {
                             Marker(
                                 state = rememberMarkerState(position = restaurantLatLng),
-                                title = place.name,
-                                snippet = place.vicinity
+                                title = place.name
                             )
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(48.dp))
                 }
             }
         } else {
@@ -269,28 +290,23 @@ fun InfoRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 8.dp),
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            modifier = Modifier.size(40.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.secondaryContainer
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.padding(8.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = textColor
+            style = MaterialTheme.typography.bodyMedium,
+            color = textColor,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
-
     }
 }
 
