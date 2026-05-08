@@ -14,13 +14,14 @@ import com.quincy.restaurantfinder.models.RestaurantViewModel
 @Composable
 fun AdminScreen(viewModel: RestaurantViewModel) {
 
-    val restaurants = viewModel.restaurants.value
+    val restaurants by viewModel.restaurants
 
     // Form states
     var name by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf("") }
+    var editingRestaurantId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadRestaurants()
@@ -28,7 +29,10 @@ fun AdminScreen(viewModel: RestaurantViewModel) {
 
     Column(modifier = Modifier.padding(16.dp)) {
 
-        Text("Admin Panel", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = if (editingRestaurantId == null) "Admin Panel - Add" else "Admin Panel - Edit",
+            style = MaterialTheme.typography.headlineMedium
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -72,26 +76,55 @@ fun AdminScreen(viewModel: RestaurantViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // ADD BUTTON
-        Button(
-            onClick = {
-                val restaurant = Restaurant(
-                    name = name,
-                    location = location,
-                    description = description,
-                    rating = rating.toDoubleOrNull() ?: 0.0
-                )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // ADD / UPDATE BUTTON
+            Button(
+                onClick = {
+                    val restaurant = Restaurant(
+                        id = editingRestaurantId ?: "",
+                        name = name,
+                        location = location,
+                        description = description,
+                        rating = rating.toDoubleOrNull() ?: 0.0
+                    )
 
-                viewModel.addRestaurant(restaurant) {
-                    name = ""
-                    location = ""
-                    description = ""
-                    rating = ""
+                    if (editingRestaurantId == null) {
+                        viewModel.addRestaurant(restaurant) {
+                            name = ""
+                            location = ""
+                            description = ""
+                            rating = ""
+                        }
+                    } else {
+                        viewModel.updateRestaurant(restaurant)
+                        editingRestaurantId = null
+                        name = ""
+                        location = ""
+                        description = ""
+                        rating = ""
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(if (editingRestaurantId == null) "Add Restaurant" else "Update Restaurant")
+            }
+
+            if (editingRestaurantId != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        editingRestaurantId = null
+                        name = ""
+                        location = ""
+                        description = ""
+                        rating = ""
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Text("Cancel")
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Add Restaurant")
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -125,15 +158,21 @@ fun AdminScreen(viewModel: RestaurantViewModel) {
                             Button(
                                 onClick = {
                                     viewModel.deleteRestaurant(restaurant.id)
-                                }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                             ) {
                                 Text("Delete")
                             }
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            // Edit button placeholder for next step
-                            Button(onClick = { /* edit later */ }) {
+                            Button(onClick = {
+                                editingRestaurantId = restaurant.id
+                                name = restaurant.name
+                                location = restaurant.location
+                                description = restaurant.description
+                                rating = restaurant.rating.toString()
+                            }) {
                                 Text("Edit")
                             }
                         }

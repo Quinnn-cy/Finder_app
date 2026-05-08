@@ -17,17 +17,9 @@ class RestaurantRepository {
         db.collection("restaurants")
             .get()
             .addOnSuccessListener { result ->
-
-                val list = result.map { document ->
-
-                    Restaurant(
-                        name = document.getString("name") ?: "",
-                        location = document.getString("location") ?: "",
-                        rating = document.getDouble("rating") ?: 0.0,
-                        id = document.id
-                    )
+                val list = result.mapNotNull { document ->
+                    document.toObject(Restaurant::class.java)?.copy(id = document.id)
                 }
-
                 onSuccess(list)
             }
             .addOnFailureListener { e ->

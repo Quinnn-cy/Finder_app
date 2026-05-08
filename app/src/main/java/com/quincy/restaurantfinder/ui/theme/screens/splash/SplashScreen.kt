@@ -60,7 +60,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
             // App Name
             Text(
-                text = "Restaurant Finder",
+                text = "Finder",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,

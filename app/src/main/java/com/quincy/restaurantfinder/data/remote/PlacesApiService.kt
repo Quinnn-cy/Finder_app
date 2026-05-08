@@ -10,7 +10,7 @@ interface PlacesApiService {
     @GET("maps/api/place/nearbysearch/json")
     suspend fun getNearbyRestaurants(
         @Query("location") location: String,
-        @Query("radius") radius: Int = 1500,
+        @Query("radius") radius: Int = 3000,
         @Query("type") type: String = "restaurant",
         @Query("key") apiKey: String
     ): PlacesResponse
@@ -18,7 +18,7 @@ interface PlacesApiService {
     @GET("maps/api/place/nearbysearch/json")
     suspend fun getNearbyHospitals(
         @Query("location") location: String,
-        @Query("radius") radius: Int = 5000,
+        @Query("radius") radius: Int = 20000,
         @Query("type") type: String = "hospital",
         @Query("key") apiKey: String): PlacesResponse
 
