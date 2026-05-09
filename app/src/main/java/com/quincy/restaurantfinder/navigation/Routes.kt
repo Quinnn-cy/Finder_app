@@ -8,4 +8,5 @@ object Routes {
     const val HOME = "home"
     const val DETAILS = "details/{placeId}"
     const val HOSPITALS = "hospitals"
+    const val ADMIN_RESTAURANTS = "admin_restaurants"
 }

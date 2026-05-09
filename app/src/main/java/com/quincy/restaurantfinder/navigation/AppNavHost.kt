@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.quincy.restaurantfinder.models.RestaurantViewModel
+import com.quincy.restaurantfinder.ui.theme.screens.admin.AdminRestaurantsScreen
 import com.quincy.restaurantfinder.ui.theme.screens.admin.AdminScreen
 import com.quincy.restaurantfinder.ui.theme.screens.details.DetailsScreen
 import com.quincy.restaurantfinder.ui.theme.screens.home.HomeScreen
@@ -72,7 +73,17 @@ fun AppNavHost(
                 },
                 onNavigateToHospitals = {
                     navController.navigate(Routes.HOSPITALS)
+                },
+                onNavigateToAdminRestaurants = {
+                    navController.navigate(Routes.ADMIN_RESTAURANTS)
                 }
+            )
+        }
+        composable(Routes.ADMIN_RESTAURANTS) {
+            val restaurantViewModel: RestaurantViewModel = viewModel()
+            AdminRestaurantsScreen(
+                viewModel = restaurantViewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(Routes.HOSPITALS) {

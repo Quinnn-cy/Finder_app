@@ -62,6 +62,7 @@ import com.quincy.restaurantfinder.ui.theme.RestaurantFinderTheme
 fun HomeScreen(
     onNavigateToDetails: (String) -> Unit,
     onNavigateToHospitals: () -> Unit,
+    onNavigateToAdminRestaurants: () -> Unit,
     viewModel: LocationViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -118,7 +119,7 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text(
-                            "Health & Dine",
+                            "FINDER",
                             fontWeight = FontWeight.ExtraBold,
                             style = MaterialTheme.typography.headlineMedium
                         )
@@ -130,8 +131,8 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    IconButton(onClick = onNavigateToAdminRestaurants) {
+                        Icon(Icons.Default.Notifications, contentDescription = "New Recommendations")
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -289,9 +290,9 @@ fun SearchBar(
         placeholder = { Text("Search for restaurants, cafes...") },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         trailingIcon = {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.Default.Tune, contentDescription = "Filter")
-            }
+//            IconButton(onClick = { /* TODO */ }) {
+//                Icon(Icons.Default.Tune, contentDescription = "Filter")
+//            }
         },
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
@@ -329,13 +330,14 @@ fun SectionHeader(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.ExtraBold
         )
-        if (showSeeAll) {
-            TextButton(onClick = onSeeAllClick) {
-                Text("See All")
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(16.dp))
-            }
-        }
-    }
+//        if (showSeeAll) {
+//            TextButton(onClick = onSeeAllClick) {
+//                Text("See All")
+//                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(16.dp))
+//            }
+//        }
+}
+
 }
 
 @Composable
@@ -367,6 +369,10 @@ fun EmptyState(message: String) {
 @Composable
 private fun HomePreview() {
     RestaurantFinderTheme {
-        HomeScreen(onNavigateToDetails = {}, onNavigateToHospitals = {})
+        HomeScreen(
+            onNavigateToDetails = {},
+            onNavigateToHospitals = {},
+            onNavigateToAdminRestaurants = {}
+        )
     }
 }
