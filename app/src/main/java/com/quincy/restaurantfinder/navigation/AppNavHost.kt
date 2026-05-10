@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.quincy.restaurantfinder.models.LocationViewModel
 import com.quincy.restaurantfinder.models.RestaurantViewModel
 import com.quincy.restaurantfinder.ui.theme.screens.admin.AdminRestaurantsScreen
 import com.quincy.restaurantfinder.ui.theme.screens.admin.AdminScreen
@@ -25,6 +26,10 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Routes.SPLASH
 ) {
+    // Shared ViewModels
+    val locationViewModel: LocationViewModel = viewModel()
+    val restaurantViewModel: RestaurantViewModel = viewModel()
+
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -63,7 +68,6 @@ fun AppNavHost(
             )
         }
         composable(Routes.ADMIN) {
-            val restaurantViewModel: RestaurantViewModel = viewModel()
             AdminScreen(viewModel = restaurantViewModel)
         }
         composable(Routes.HOME) {
@@ -76,11 +80,11 @@ fun AppNavHost(
                 },
                 onNavigateToAdminRestaurants = {
                     navController.navigate(Routes.ADMIN_RESTAURANTS)
-                }
+                },
+                viewModel = locationViewModel
             )
         }
         composable(Routes.ADMIN_RESTAURANTS) {
-            val restaurantViewModel: RestaurantViewModel = viewModel()
             AdminRestaurantsScreen(
                 viewModel = restaurantViewModel,
                 onNavigateBack = { navController.popBackStack() }
@@ -91,7 +95,8 @@ fun AppNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDetails = { placeId ->
                     navController.navigate("details/$placeId")
-                }
+                },
+                viewModel = locationViewModel
             )
         }
         composable(

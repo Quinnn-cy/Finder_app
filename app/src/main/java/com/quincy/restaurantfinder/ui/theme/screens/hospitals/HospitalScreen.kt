@@ -22,6 +22,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -36,18 +37,32 @@ import com.quincy.restaurantfinder.ui.components.PlaceCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun HospitalScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetails: (String) -> Unit,
     viewModel: LocationViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchHospitals()
+    }
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    // Show error if it exists
+    LaunchedEffect(state.error) {
+        state.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
@@ -286,10 +301,24 @@ fun HospitalScreen(
                                 )
                                 Spacer(Modifier.height(24.dp))
                                 Button(
-                                    onClick = { viewModel.fetchHospitals(radius = 10000) },
+                                    onClick = {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Expanding search to 20km...")
+                                        }
+                                        viewModel.fetchHospitals(radius = 20000)
+                                    },
+                                    enabled = !state.isLoading,
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text("Expand search to 10km")
+                                    if (state.isLoading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp,
+                                            color = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                    }
+                                    Text("Expand search to 20km")
                                 }
                             }
                         }

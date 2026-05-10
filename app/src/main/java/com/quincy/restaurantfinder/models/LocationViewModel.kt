@@ -64,7 +64,7 @@ class LocationViewModel : ViewModel() {
         }
     }
 
-    fun fetchHospitals(radius: Int = 5000) {
+    fun fetchHospitals(radius: Int = 20000) {
         val lat = _state.value.latitude
         val lng = _state.value.longitude
 

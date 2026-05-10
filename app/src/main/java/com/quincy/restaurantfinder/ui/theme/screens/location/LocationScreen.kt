@@ -20,6 +20,7 @@ import com.quincy.restaurantfinder.ui.components.PlaceCard
 @Composable
 fun LocationScreen(
     viewModel: LocationViewModel,
+    type: String,
     onNavigateToDetails: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -27,6 +28,7 @@ fun LocationScreen(
     // Run once when screen opens
     LaunchedEffect(Unit) {
         viewModel.fetchRestaurants()
+        viewModel.fetchHospitals()
     }
 
     Scaffold(
