@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Restaurant Finder"
+rootProject.name = "Finder"
 include(":app")
  
